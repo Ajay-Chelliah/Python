@@ -1,0 +1,98 @@
+// Variables
+$primary-color: #4CAF50;
+$secondary-color: #ffffff;
+$background-color: #f4f4f4;
+$font-color: #333;
+$border-radius: 5px;
+$transition-duration: 0.3s;
+
+// Mixins
+@mixin transition($properties) {
+  transition: $properties $transition-duration ease-in-out;
+}
+
+// Reset
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: $background-color;
+  color: $font-color;
+  padding: 20px;
+}
+
+.content {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: $secondary-color;
+  padding: 20px;
+  border-radius: $border-radius;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: $primary-color;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+
+  th, td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+
+    &:first-child {
+      width: 40%;
+    }
+  }
+
+  th {
+    background-color: $primary-color;
+    color: $secondary-color;
+  }
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  input[type="submit"] {
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: $border-radius;
+  }
+
+  input[type="submit"] {
+    background-color: $primary-color;
+    color: $secondary-color;
+    cursor: pointer;
+    @include transition(all);
+
+    &:hover {
+      background-color: darken($primary-color, 10%);
+    }
+  }
+}
+
+a {
+  color: $primary-color;
+  text-decoration: none;
+  @include transition(color);
+
+  &:hover {
+    color: darken($primary-color, 10%);
+  }
+}

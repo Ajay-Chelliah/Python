@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>CRUD ME</title>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <h1>Task Smash</h1>
+    {% if tasks|length < 1 %}
+    <h4>There are no tasks... create one below</h4>
+    {% else %}
+    <table>
+        <tr>
+            <th>Items</th>
+            <th>Weight</th>
+            <th>Delivery Location</th>
+            <th>Delivery Date</th>
+            <th>Actions</th>
+        </tr>
+        {% for task in tasks %}
+            <tr>
+                <td>{{ task.items }}</td>
+                <td>{{ task.weight }}</td>
+                <td>{{ task.Del_location }}</td>
+                <td>{{ task.Del_Date.strftime('%Y-%m-%d') }}</td>
+                <td>
+                    <a href="/delete/{{ task.id }}">Delete</a>
+                    <br />
+                    <a href="/edit/{{ task.id }}">Update</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+    <form action="/" method="POST">
+        <input type="text" name="items" id="items" placeholder="Task Item" required />
+        <input type="number" name="weight" id="weight" placeholder="Weight" required />
+        <input type="text" name="loc" id="loc" placeholder="Delivery Location" required />
+        <input type="date" name="date" id="date" required />
+        <input type="submit" value="Add Task" id="add_btn" />
+    </form>
+</div>
+{% endblock %}
