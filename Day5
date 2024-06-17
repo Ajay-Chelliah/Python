@@ -1,0 +1,151 @@
+create database cars;
+use cars;
+
+create table user
+(
+	uid int primary key,
+    name varchar(45) not null,
+    email varchar(45) not null,
+    password varchar(45) not null,
+    phone varchar(45) not null,
+    avatar varchar(100)  null,
+    location varchar(45) check(location in ('madurai' ,'chennai'))
+);
+
+create table car
+(
+	cid int primary key,
+    uid int,
+    model varchar(45) not null,
+    brand varchar(45) not null,
+    mileage varchar(45) not null,
+    year varchar(45) not null,
+    price varchar(100)  null,
+    sold varchar(45) null,
+    description text null,
+    image varchar(100) null,
+    foreign key(cid) references user(uid)
+);
+
+CREATE TABLE service
+(
+    service_id INT PRIMARY KEY,
+    cid INT,
+    service_date DATE NOT NULL,
+    service_description TEXT NOT NULL,
+    cost DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (cid) REFERENCES car(cid)
+);
+
+CREATE TABLE review
+(
+    review_id INT PRIMARY KEY,
+    cid INT,
+    uid INT,
+    review_date DATE NOT NULL,
+    rating INT CHECK(rating >= 1 AND rating <= 5),
+    comments TEXT,
+    FOREIGN KEY (cid) REFERENCES car(cid),
+    FOREIGN KEY (uid) REFERENCES user(uid)
+);
+
+INSERT INTO user (uid, name, email, password, phone, avatar, location) VALUES
+(1, 'diensh', 'diensh@example.com', 'pa123', '987343562', 'avatar1.jpg', 'chennai'),
+(2, 'ajay', 'ajay@example.com', 'pa456', '089756232364', 'avatar2.jpg', 'madurai');
+
+INSERT INTO car (cid, uid, model, brand, mileage, year, price, sold, description, image) VALUES
+(1, 1, 'Model S', 'Tesla', '15000', '2022', '80000', 'no', 'Electric car in excellent condition', 'car1.jpg'),
+(2, 2, 'Civic', 'Honda', '30000', '2019', '20000', 'yes', 'Well maintained, single owner', 'car2.jpg');
+
+INSERT INTO service (service_id, cid, service_date, service_description, cost) VALUES
+(1, 1, '2023-01-15', 'Oil change and tire rotation', 100.00),
+(2, 2, '2023-02-20', 'Brake pad replacement', 150.00);
+
+INSERT INTO review (review_id, cid, uid, review_date, rating, comments) VALUES
+(1, 1, 2, '2023-03-10', 5, 'Excellent car with great performance'),
+(2, 2, 1, '2023-04-05', 4, 'Very reliable and fuel efficient');
+
+ALTER TABLE car
+ADD COLUMN color VARCHAR(45) NULL;
+
+UPDATE user
+SET email = 'ajay@example.com'
+WHERE uid = 1;
+
+UPDATE car
+SET price = '75000'
+WHERE cid = 1;
+
+DELETE FROM user
+WHERE uid = 2;
+
+DELETE FROM car
+WHERE cid = 2;
+
+SELECT * 
+FROM car
+WHERE price > 100000;
+  
+UPDATE car
+SET price = 110000, 
+    last_updated = NOW()  
+WHERE cid = 1;
+
+DELETE FROM car
+WHERE price < 100000;
+
+
+
+-- Calculate the total cost of services for each car
+SELECT cid, SUM(cost) AS total_service_cost
+FROM service
+GROUP BY cid;
+
+--cars with a price greater than 10000 and mileage less than 20000
+SELECT * 
+FROM car 
+WHERE price > 10000 
+  AND mileage < 20000;
+
+-- cars that are either sold or have a mileage greater than 25000
+SELECT * 
+FROM car 
+WHERE sold = 'yes' 
+   OR mileage > 25000;
+
+
+UPDATE car
+SET price = 75000.00, 
+    last_updated = NOW()  
+WHERE cid = 1;
+
+-- Delete cars with mileage below 20000
+DELETE FROM car
+WHERE mileage < 20000;
+
+-- all unique locations from the user and car tables
+SELECT location FROM user
+UNION
+SELECT location FROM car; -- Assuming car table has a location column
+
+-- services for specific cars
+SELECT * 
+FROM service 
+WHERE cid IN (1, 2);
+
+-- users whose names start with 'J'
+SELECT * 
+FROM user 
+WHERE name LIKE 'J%';
+
+-- average rating for each car
+
+SELECT cid, AVG(rating) AS average_rating
+FROM review
+GROUP BY cid;
+
+-- cars with an average rating greater than 4
+SELECT cid, AVG(rating) AS average_rating
+FROM review
+GROUP BY cid
+HAVING AVG(rating) > 4;
