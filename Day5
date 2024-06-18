@@ -149,3 +149,92 @@ SELECT cid, AVG(rating) AS average_rating
 FROM review
 GROUP BY cid
 HAVING AVG(rating) > 4;
+
+
+
+
+CREATE DATABASE shop;
+USE shop;
+
+CREATE TABLE products (
+    product_id INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    stock INT NOT NULL,
+    release_date DATE NOT NULL,
+    last_updated TIMESTAMP NULL
+);
+
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY,
+    product_id INT,
+    quantity INT NOT NULL,
+    order_date DATE NOT NULL,
+    customer_name VARCHAR(100) NOT NULL,
+    FOREIGN KEY (product_id) REFERENCES products(product_id)
+);
+
+INSERT INTO products (product_id, name, price, stock, release_date) VALUES
+(1, 'Laptop', 1200.00, 150, '2022-05-10'),
+(2, 'Smartphone', 800.00, 80, '2022-07-20'),
+(3, 'Tablet', 600.00, 200, '2022-01-15'),
+(4, 'Headphones', 150.00, 300, '2023-03-10');
+
+INSERT INTO orders (order_id, product_id, quantity, order_date, customer_name) VALUES
+(1, 1, 2, '2023-06-15', 'Ajay'),
+(2, 2, 1, '2023-06-16', 'Vishal'),
+(3, 3, 5, '2023-06-17', 'raghul'),
+(4, 4, 10, '2023-06-18', 'Dhiyanesh');
+
+
+--Calculate the total revenue of each product (price * stock)
+SELECT name, price, stock, (price * stock) AS total_revenue
+FROM products;
+
+--products with a price greater than 100 and released after January 1, 2022
+SELECT * 
+FROM products 
+WHERE price > 100 
+  AND release_date > '2022-01-01';
+
+-- products with a price between 100 and 1000 or stock less than 100
+SELECT * 
+FROM products 
+WHERE (price BETWEEN 100 AND 1000) 
+   OR stock < 100;
+
+--Update product details and set the last_updated to the current timestamp
+UPDATE products
+SET price = 1100.00, 
+    last_updated = NOW()  
+WHERE product_id = 1;
+
+-- Delete products with stock below 100
+DELETE FROM products
+WHERE stock < 100;
+
+--  all unique customer names from orders and products
+SELECT customer_name AS name FROM orders
+UNION
+SELECT name FROM products;
+
+--orders for specific products
+SELECT * 
+FROM orders 
+WHERE product_id IN (1, 3);
+
+-- products whose names start with 'S'
+SELECT * 
+FROM products 
+WHERE name LIKE 'S%';
+
+-- the total quantity ordered for each product
+SELECT product_id, SUM(quantity) AS total_quantity
+FROM orders
+GROUP BY product_id;
+
+-- products with total quantity ordered greater than 3
+SELECT product_id, SUM(quantity) AS total_quantity
+FROM orders
+GROUP BY product_id
+HAVING SUM(quantity) > 3;
