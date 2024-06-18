@@ -1,0 +1,106 @@
+
+--Write a query to find the total stock of products for each location.
+
+FROM products
+GROUP BY location;
+
+-- 2) Write a query to find the number of products in each price range (e.g., 0-10000, 10000-20000, 20000-50000, 50000+).
+
+SELECT 
+  CASE 
+    WHEN price BETWEEN 0 AND 9999 THEN '0-10000'
+    WHEN price BETWEEN 10000 AND 19999 THEN '10000-20000'
+    WHEN price BETWEEN 20000 AND 49999 THEN '20000-50000'
+    ELSE '50000+'
+  END AS price_range,
+  COUNT(*) AS product_count
+FROM products
+GROUP BY price_range;
+
+-- 3) Write a query to find the average age of customers grouped by their location (based on the address).
+
+SELECT address AS location, AVG(age) AS average_age
+FROM customers
+GROUP BY address;
+
+-- 1) Write a query to retrieve all products ordered by their price in descending order.
+
+SELECT *
+FROM products
+ORDER BY price DESC;
+
+-- 2) Write a query to retrieve all customers ordered by their age in ascending order.
+
+SELECT *
+FROM customers
+ORDER BY age ASC;
+
+-- 3) Write a query to retrieve all orders ordered by the order amount in descending order and then by the customer name in ascending order.
+
+SELECT *
+FROM orders
+ORDER BY order_amount DESC, customer_name ASC;
+
+-- 1) Write a query to find the locations where the total stock of products is greater than 20.
+
+SELECT location, SUM(stock) AS total_stock
+FROM products
+GROUP BY location
+HAVING SUM(stock) > 20;
+
+-- 2) Write a query to find the customers who have placed orders with a total amount greater than 10000.
+
+SELECT customer_id, SUM(order_amount) AS total_amount
+FROM orders
+GROUP BY customer_id
+HAVING SUM(order_amount) > 10000;
+
+-- 3) Write a query to find the products that have a stock level between 10 and 20 and are located in Mumbai.
+
+SELECT *
+FROM products
+WHERE stock BETWEEN 10 AND 20 AND location = 'Mumbai';
+
+USE sales_db;
+
+-- String Functions:
+-- 1) Concatenate the first name and last name of customers.
+SELECT CONCAT(first_name, ' ', last_name) AS full_name
+FROM customers;
+
+-- 2) Convert the product names to uppercase.
+SELECT UPPER(product_name) AS upper_product_name
+FROM products;
+
+-- 3) Find the position of 'e' in customer emails.
+SELECT email, INSTR(email, 'e') AS position_of_e
+FROM customers;
+
+-- 4) Extract the first 5 characters of product descriptions.
+SELECT SUBSTR(description, 1, 5) AS short_description
+FROM products;
+
+-- 5) Trim leading and trailing spaces from customer addresses.
+SELECT TRIM(address) AS trimmed_address
+FROM customers;
+
+-- Date and Time Functions:
+-- 6) Get the current date and time.
+SELECT SYSDATE() AS current_timestamp;
+
+-- 7) Calculate the number of days between the order date and the current date.
+SELECT order_id, DATEDIFF(CURRENT_DATE(), order_date) AS days_since_order
+FROM orders;
+
+-- 8) Find the last day of the month for order dates.
+SELECT order_id, LAST_DAY(order_date) AS last_day_of_order_month
+FROM orders;
+
+-- Numeric Functions:
+-- 9) Find the average order amount.
+SELECT AVG(order_amount) AS average_order_amount
+FROM orders;
+
+-- 10) Calculate the square root of the product price.
+SELECT product_id, product_name, SQRT(price) AS sqrt_price
+FROM products;
