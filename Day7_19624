@@ -1,0 +1,107 @@
+create database cars;
+use cars;
+
+create table user
+(
+	uid int primary key,
+    name varchar(45) not null,
+    email varchar(45) not null,
+    password varchar(45) not null,
+    phone varchar(45) not null,
+    avatar varchar(100)  null,
+    location varchar(45) check(location in ('madurai' ,'chennai'))
+);
+
+create table car
+(
+	cid int primary key,
+    uid int,
+    model varchar(45) not null,
+    brand varchar(45) not null,
+    mileage varchar(45) not null,
+    year varchar(45) not null,
+    price varchar(100)  null,
+    sold varchar(45) null,
+    description text null,
+    image varchar(100) null,
+    foreign key(cid) references user(uid)
+);
+
+CREATE TABLE service
+(
+    service_id INT PRIMARY KEY,
+    cid INT,
+    service_date DATE NOT NULL,
+    service_description TEXT NOT NULL,
+    cost DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (cid) REFERENCES car(cid)
+);
+
+CREATE TABLE review
+(
+    review_id INT PRIMARY KEY,
+    cid INT,
+    uid INT,
+    review_date DATE NOT NULL,
+    rating INT CHECK(rating >= 1 AND rating <= 5),
+    comments TEXT,
+    FOREIGN KEY (cid) REFERENCES car(cid),
+    FOREIGN KEY (uid) REFERENCES user(uid)
+);
+
+INSERT INTO user (uid, name, email, password, phone, avatar, location) VALUES
+(1, 'diensh', 'diensh@example.com', 'pa123', '987343562', 'avatar1.jpg', 'chennai'),
+(2, 'ajay', 'ajay@example.com', 'pa456', '089756232364', 'avatar2.jpg', 'madurai');
+
+INSERT INTO car (cid, uid, model, brand, mileage, year, price, sold, description, image) VALUES
+(1, 1, 'Model S', 'Tesla', '15000', '2022', '80000', 'no', 'Electric car in excellent condition', 'car1.jpg'),
+(2, 2, 'Civic', 'Honda', '30000', '2019', '20000', 'yes', 'Well maintained, single owner', 'car2.jpg');
+
+INSERT INTO service (service_id, cid, service_date, service_description, cost) VALUES
+(1, 1, '2023-01-15', 'Oil change and tire rotation', 100.00),
+(2, 2, '2023-02-20', 'Brake pad replacement', 150.00);
+
+INSERT INTO review (review_id, cid, uid, review_date, rating, comments) VALUES
+(1, 1, 2, '2023-03-10', 5, 'Excellent car with great performance'),
+(2, 2, 1, '2023-04-05', 4, 'Very reliable and fuel efficient');
+
+--Inner Join
+
+SELECT car.cid, car.model, car.brand, car.price, user.name, user.email
+FROM car
+INNER JOIN user ON car.uid = user.uid;
+
+--Left Join
+
+SELECT car.cid, car.model, car.brand, car.price, user.name, user.email
+FROM car
+LEFT JOIN user ON car.uid = user.uid;
+
+--Right Join
+
+SELECT car.cid, car.model, car.brand, car.price, user.name, user.email
+FROM car
+RIGHT JOIN user ON car.uid = user.uid;
+
+--Full Outer Join
+
+SELECT car.cid, car.model, car.brand, car.price, user.name, user.email
+FROM car
+FULL OUTER JOIN user ON car.uid = user.uid;
+
+--Self Join
+
+SELECT a.cid AS car1_id, a.model AS car1_model, b.cid AS car2_id, b.model AS car2_model, a.uid
+FROM car a
+INNER JOIN car b ON a.uid = b.uid AND a.cid <> b.cid;
+
+--Cross Join
+
+SELECT car.cid, car.model, service.service_id, service.service_date
+FROM car
+CROSS JOIN service;
+
+SELECT car.cid, car.model, car.brand, AVG(review.rating) AS average_rating
+FROM car
+LEFT JOIN review ON car.cid = review.cid
+GROUP BY car.cid, car.model, car.brand;
