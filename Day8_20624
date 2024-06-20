@@ -1,0 +1,163 @@
+CREATE DATABASE cars;
+USE cars;
+
+CREATE TABLE user
+(
+    uid INT PRIMARY KEY,
+    name VARCHAR(45) NOT NULL,
+    email VARCHAR(45) NOT NULL,
+    password VARCHAR(45) NOT NULL,
+    phone VARCHAR(45) NOT NULL,
+    avatar VARCHAR(100) NULL,
+    location VARCHAR(45)
+);
+
+CREATE TABLE car
+(
+    cid INT PRIMARY KEY,
+    uid INT,
+    model VARCHAR(45) NOT NULL,
+    brand VARCHAR(45) NOT NULL,
+    mileage VARCHAR(45) NOT NULL,
+    year VARCHAR(45) NOT NULL,
+    price DECIMAL(10, 2) NULL,
+    sold VARCHAR(45) NULL,
+    description TEXT NULL,
+    image VARCHAR(100) NULL,
+    FOREIGN KEY (uid) REFERENCES user(uid) ON DELETE CASCADE
+);
+
+CREATE TABLE service
+(
+    service_id INT PRIMARY KEY,
+    cid INT,
+    service_date DATE NOT NULL,
+    service_description TEXT NOT NULL,
+    cost DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (cid) REFERENCES car(cid) ON DELETE CASCADE
+);
+
+CREATE TABLE review
+(
+    review_id INT PRIMARY KEY,
+    cid INT,
+    uid INT,
+    review_date DATE NOT NULL,
+    rating INT CHECK (rating >= 1 AND rating <= 5),
+    comments TEXT,
+    FOREIGN KEY (cid) REFERENCES car(cid) ON DELETE CASCADE,
+    FOREIGN KEY (uid) REFERENCES user(uid) ON DELETE CASCADE
+);
+
+INSERT INTO user (uid, name, email, password, phone, avatar, location) VALUES
+(1, 'diensh', 'diensh@example.com', 'pa123', '987343562', 'avatar1.jpg', 'chennai'),
+(2, 'ajay', 'ajay@example.com', 'pa456', '089756232364', 'avatar2.jpg', 'madurai');
+
+INSERT INTO car (cid, uid, model, brand, mileage, year, price, sold, description, image) VALUES
+(1, 1, 'Model S', 'Tesla', '15000', '2022', '80000', 'no', 'Electric car in excellent condition', 'car1.jpg'),
+(2, 2, 'Civic', 'Honda', '30000', '2019', '20000', 'yes', 'Well maintained, single owner', 'car2.jpg');
+
+INSERT INTO service (service_id, cid, service_date, service_description, cost) VALUES
+(1, 1, '2023-01-15', 'Oil change and tire rotation', 100.00),
+(2, 2, '2023-02-20', 'Brake pad replacement', 150.00);
+
+INSERT INTO review (review_id, cid, uid, review_date, rating, comments) VALUES
+(1, 1, 2, '2023-03-10', 5, 'Excellent car with great performance'),
+(2, 2, 1, '2023-04-05', 4, 'Very reliable and fuel efficient');
+
+
+--Join users with their vehicle 
+
+SELECT 
+    u.uid AS user_id, 
+    u.name AS username, 
+    c.cid AS vehicle_id, 
+    c.brand, 
+    c.model, 
+    c.year
+FROM 
+    user u
+JOIN 
+    car c ON u.uid = c.uid;
+
+
+--Join vehicles with their transactions and get the buyer and seller information
+
+SELECT 
+    c.cid AS vehicle_id, 
+    c.brand, 
+    c.model, 
+    s.cost AS amount, 
+    buyer.name AS buyer_name, 
+    seller.name AS seller_name, 
+    s.service_date AS transaction_date
+FROM 
+    service s
+JOIN 
+    car c ON s.cid = c.cid
+JOIN 
+    user buyer ON c.uid = buyer.uid 
+JOIN 
+    user seller ON c.uid = seller.uid;
+
+
+--Find vehicles with average review stars greater than a specific value
+
+SELECT 
+    c.cid, 
+    c.brand, 
+    c.model, 
+    AVG(r.rating) AS average_stars
+FROM 
+    car c
+JOIN 
+    review r ON c.cid = r.cid
+GROUP BY 
+    c.cid, c.brand, c.model
+HAVING 
+    AVG(r.rating) > 4;
+
+--Get vehicles that have not been rented in the last 6 months
+
+SELECT 
+    c.cid, 
+    c.brand, 
+    c.model
+FROM 
+    car c
+WHERE 
+    c.cid NOT IN (
+        SELECT 
+            s.cid 
+        FROM 
+            service s 
+        WHERE 
+            s.service_date >= CURDATE() - INTERVAL 6 MONTH
+    );
+
+--Calculate the duration of each rent in days
+
+SELECT 
+    s.service_id, 
+    s.cid AS vehicle_id, 
+    c.uid AS buyer_id, 
+    c.uid AS seller_id, 
+    s.service_date AS start_date, 
+    s.service_date AS end_date, 
+    DATEDIFF(s.service_date, s.service_date) AS rent_duration_days
+FROM 
+    service s
+JOIN 
+    car c ON s.cid = c.cid;
+
+--Get the vehicles that were created in the current year
+
+SELECT 
+    c.cid, 
+    c.brand, 
+    c.model, 
+    c.year
+FROM 
+    car c
+WHERE 
+    EXTRACT(YEAR FROM STR_TO_DATE(c.year, '%Y')) = EXTRACT(YEAR FROM CURRENT_DATE);
