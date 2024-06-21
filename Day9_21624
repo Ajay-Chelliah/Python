@@ -1,0 +1,70 @@
+--Stored Procedure to Add a New Car
+DELIMITER //
+
+CREATE PROCEDURE AddCar(
+    IN p_uid INT,
+    IN p_model VARCHAR(45),
+    IN p_brand VARCHAR(45),
+    IN p_mileage VARCHAR(45),
+    IN p_year VARCHAR(45),
+    IN p_price DECIMAL(10,2),
+    IN p_sold VARCHAR(45),
+    IN p_description TEXT,
+    IN p_image VARCHAR(100)
+)
+BEGIN
+    INSERT INTO car (uid, model, brand, mileage, year, price, sold, description, image)
+    VALUES (p_uid, p_model, p_brand, p_mileage, p_year, p_price, p_sold, p_description, p_image);
+END //
+
+--Function to Get the Average Rating for a Car
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE FUNCTION GetAverageRating(p_cid INT)
+RETURNS DECIMAL(3,2)
+DETERMINISTIC
+BEGIN
+    DECLARE avg_rating DECIMAL(3,2);
+
+    SELECT AVG(rating)
+    INTO avg_rating
+    FROM review
+    WHERE cid = p_cid;
+
+    RETURN avg_rating;
+END //
+
+DELIMITER ;
+
+--Cursor to List Cars and Their Average Ratings
+
+DELIMITER //
+
+CREATE PROCEDURE ListCarsWithAverageRatings()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE car_id INT;
+    DECLARE car_model VARCHAR(45);
+    DECLARE avg_rating DECIMAL(3,2);
+    DECLARE cur CURSOR FOR
+        SELECT c.cid, c.model, GetAverageRating(c.cid)
+        FROM car c;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO car_id, car_model, avg_rating;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        SELECT car_id, car_model, avg_rating;
+    END LOOP;
+
+    CLOSE cur;
+END //
+
+DELIMITER ;
