@@ -1,0 +1,252 @@
+CREATE TABLE user
+(
+    uid INT PRIMARY KEY,
+    name VARCHAR(45) NOT NULL,
+    email VARCHAR(45) NOT NULL,
+    password VARCHAR(45) NOT NULL,
+    phone VARCHAR(45) NOT NULL,
+    avatar VARCHAR(100) NULL,
+    location VARCHAR(45)
+);
+
+CREATE TABLE car
+(
+    cid INT PRIMARY KEY,
+    uid INT,
+    model VARCHAR(45) NOT NULL,
+    brand VARCHAR(45) NOT NULL,
+    mileage VARCHAR(45) NOT NULL,
+    year VARCHAR(45) NOT NULL,
+    price DECIMAL(10, 2) NULL,
+    sold VARCHAR(45) NULL,
+    description TEXT NULL,
+    image VARCHAR(100) NULL,
+    FOREIGN KEY (uid) REFERENCES user(uid) ON DELETE CASCADE
+);
+
+CREATE TABLE service
+(
+    service_id INT PRIMARY KEY,
+    cid INT,
+    service_date DATE NOT NULL,
+    service_description TEXT NOT NULL,
+    cost DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (cid) REFERENCES car(cid) ON DELETE CASCADE
+);
+
+CREATE TABLE review
+(
+    review_id INT PRIMARY KEY,
+    cid INT,
+    uid INT,
+    review_date DATE NOT NULL,
+    rating INT CHECK (rating >= 1 AND rating <= 5),
+    comments TEXT,
+    FOREIGN KEY (cid) REFERENCES car(cid) ON DELETE CASCADE,
+    FOREIGN KEY (uid) REFERENCES user(uid) ON DELETE CASCADE
+);
+
+-- Example of TCL Commands
+
+
+START TRANSACTION;
+
+
+INSERT INTO user (uid, name, email, password, phone, avatar, location)
+VALUES (1, 'John Doe', 'ajay123@gmail.com', '123', '8976789034', 'avatar.jpg', 'New York');
+
+
+SAVEPOINT savepoint1;
+
+
+INSERT INTO car (cid, uid, model, brand, mileage, year, price, sold, description, image)
+VALUES (1, 1, 'Model S', 'Tesla', '10000', '2021', 79999, 'No', 'Electric car', 'car1.jpg');
+
+
+ROLLBACK TO savepoint1;
+
+
+COMMIT;
+
+--Trigger
+
+CREATE TRIGGER after_service_insert
+AFTER INSERT ON service
+FOR EACH ROW
+BEGIN
+    INSERT INTO service_log (service_id, cid, service_date, service_description, cost)
+    VALUES (NEW.service_id, NEW.cid, NEW.service_date, NEW.service_description, NEW.cost);
+END;
+
+
+CREATE TABLE service_log
+(
+    log_id INT PRIMARY KEY AUTO_INCREMENT,
+    service_id INT,
+    cid INT,
+    service_date DATE,
+    service_description TEXT,
+    cost DECIMAL(10, 2)
+);
+
+--view commands
+
+CREATE VIEW car_user_view AS
+SELECT 
+    c.cid,
+    c.model,
+    c.brand,
+    c.mileage,
+    c.year,
+    c.price,
+    c.sold,
+    c.description,
+    c.image,
+    u.uid,
+    u.name,
+    u.email,
+    u.phone,
+    u.avatar,
+    u.location
+FROM 
+    car c
+JOIN 
+    user u ON c.uid = u.uid;
+
+
+SELECT * FROM car_user_view;
+
+--1)
+START TRANSACTION;
+
+INSERT INTO user (uid, name, email, password, phone, avatar, location)
+VALUES (2, 'Jane Doe', 'ajay123@gmail.com', '123', '98789726243', 'avatar1.jpg', 'Chennai');
+
+COMMIT;
+
+--2)
+START TRANSACTION;
+
+UPDATE user SET email = 'ajay@example.com' WHERE uid = 2;
+
+ROLLBACK;
+
+--3)
+
+START TRANSACTION;
+
+UPDATE user SET phone = '99999999' WHERE uid = 2;
+
+SAVEPOINT checkpoint1;
+
+UPDATE user SET avatar = 'new_avatar.jpg' WHERE uid = 2;
+
+ROLLBACK TO checkpoint1;
+
+
+COMMIT;
+
+--Trigger
+
+--1)
+CREATE TABLE `order` (
+    order_id INT PRIMARY KEY,
+    uid INT,
+    order_date DATE,
+    status VARCHAR(45),
+    FOREIGN KEY (uid) REFERENCES user(uid) ON DELETE CASCADE
+);
+
+CREATE TABLE payment (
+    payment_id INT PRIMARY KEY,
+    order_id INT,
+    payment_date DATE,
+    amount DECIMAL(10, 2),
+    status VARCHAR(45),
+    FOREIGN KEY (order_id) REFERENCES `order`(order_id) ON DELETE CASCADE
+);
+
+CREATE TRIGGER after_order_complete
+AFTER UPDATE ON `order`
+FOR EACH ROW
+BEGIN
+    IF NEW.status = 'Completed' THEN
+        UPDATE payment SET status = 'Paid' WHERE order_id = NEW.order_id;
+    END IF;
+END;
+
+--2)
+
+CREATE TABLE stock (
+    product_id INT PRIMARY KEY,
+    quantity INT
+);
+
+CREATE TRIGGER before_order_insert
+BEFORE INSERT ON `order`
+FOR EACH ROW
+BEGIN
+    DECLARE stock_quantity INT;
+    SET stock_quantity = (SELECT quantity FROM stock WHERE product_id = NEW.product_id);
+
+    IF stock_quantity < 1 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Insufficient stock';
+    END IF;
+END;
+
+--3)
+-- Creating the trigger
+CREATE TRIGGER after_order_insert
+AFTER INSERT ON `order`
+FOR EACH ROW
+BEGIN
+    UPDATE stock SET quantity = quantity - 1 WHERE product_id = NEW.product_id;
+END;
+
+--Views
+--1)
+CREATE VIEW customer_orders_view AS
+SELECT 
+    u.uid,
+    u.name,
+    u.email,
+    o.order_id,
+    o.order_date,
+    o.status
+FROM 
+    user u
+JOIN 
+    `order` o ON u.uid = o.uid;
+
+
+SELECT * FROM customer_orders_view;
+
+--2)
+
+CREATE OR REPLACE VIEW payment_details_view AS
+SELECT 
+    p.payment_id,
+    p.payment_date,
+    p.amount,
+    p.status AS payment_status,
+    o.order_id,
+    o.order_date,
+    o.status AS order_status,
+    u.uid,
+    u.name,
+    u.email
+FROM 
+    payment p
+JOIN 
+    `order` o ON p.order_id = o.order_id
+JOIN 
+    user u ON o.uid = u.uid;
+
+
+SELECT * FROM payment_details_view;
+
+--3)
+
+DROP VIEW IF EXISTS customer_orders_view;
+
+
